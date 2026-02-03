@@ -68,68 +68,83 @@ export default function StartInterviewPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name *
               </label>
               <input
+                id="name"
+                name="name"
                 type="text"
                 required
+                autoComplete="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none bg-white text-gray-900 placeholder-gray-400"
                 placeholder="John Doe"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address *
               </label>
               <input
+                id="email"
+                name="email"
                 type="email"
                 required
+                autoComplete="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none bg-white text-gray-900 placeholder-gray-400"
                 placeholder="john@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number
               </label>
               <input
+                id="phone"
+                name="phone"
                 type="tel"
+                autoComplete="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none bg-white text-gray-900 placeholder-gray-400"
                 placeholder="+1 234 567 8900"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
                 Target Role *
               </label>
               <input
+                id="role"
+                name="role"
                 type="text"
                 required
+                autoComplete="organization-title"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none bg-white text-gray-900 placeholder-gray-400 cursor-text"
                 placeholder="e.g., Software Engineer, Product Manager"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="level" className="block text-sm font-semibold text-gray-700 mb-2">
                 Experience Level *
               </label>
               <select
+                id="level"
+                name="level"
                 value={formData.level}
                 onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none bg-white text-gray-900 cursor-pointer appearance-none"
+                style={{ backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')", backgroundRepeat: "no-repeat", backgroundPosition: "right 0.75rem center", backgroundSize: "1.5em 1.5em", paddingRight: "2.5rem" }}
               >
                 <option value="entry">Entry Level (0-2 years)</option>
                 <option value="mid">Mid Level (2-5 years)</option>

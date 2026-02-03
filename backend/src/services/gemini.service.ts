@@ -1,14 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logger } from '../utils/logger';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  private model = genAI ? genAI.getGenerativeModel({ model: 'gemini-pro' }) : null;
 
   // Analyze confidence from video/audio patterns
   async analyzeConfidence(transcript: string, metadata: any): Promise<any> {
     try {
+      if (!this.model) {
+        logger.warn('Gemini API key not configured, returning mock confidence analysis');
+        return {
+          confidenceScore: 75,
+          indicators: ['Clear speech', 'Good pacing'],
+          concerns: ['Some filler words'],
+          suggestions: ['Practice reducing filler words', 'Take brief pauses before answering']
+        };
+      }
       const prompt = `
         Analyze the confidence level of a candidate based on:
         Transcript: ${transcript}
@@ -46,6 +55,16 @@ export class GeminiService {
   // Multi-modal analysis (if using gemini-pro-vision)
   async analyzeVideoFrame(imageData: string): Promise<any> {
     try {
+      if (!genAI) {
+        logger.warn('Gemini API key not configured, returning mock video analysis');
+        return {
+          facialExpressions: 'Engaged and attentive',
+          bodyLanguage: 'Professional posture',
+          engagementLevel: 80,
+          professionalAppearance: 85
+        };
+      }
+      
       const visionModel = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
       
       const prompt = `
@@ -84,6 +103,11 @@ export class GeminiService {
     answer: string
   ): Promise<string> {
     try {
+      if (!this.model) {
+        logger.warn('Gemini API key not configured, returning generic follow-up');
+        return 'Can you elaborate more on that point?';
+      }
+      
       const prompt = `
         Based on this interview exchange:
         Question: ${question}

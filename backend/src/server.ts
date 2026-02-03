@@ -9,6 +9,7 @@ import interviewRoutes from './routes/interview.routes';
 import candidateRoutes from './routes/candidate.routes';
 import aiRoutes from './routes/ai.routes';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './routes/auth.routes';
 import { logger } from './utils/logger';
 
 dotenv.config();
@@ -31,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/candidates', candidateRoutes);
 app.use('/api/ai', aiRoutes);
-
+app.use('/api/auth', authRoutes);
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Cortex Hire API is running' });
 });
