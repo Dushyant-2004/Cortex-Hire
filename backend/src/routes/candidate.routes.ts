@@ -7,11 +7,42 @@ const router = express.Router();
 // Create candidate
 router.post('/', async (req: Request, res: Response) => {
   try {
+    logger.info('Creating candidate:', req.body);
+    
+    // Validate required fields
+    const { name, email, targetRole } = req.body;
+    if (!name || !email || !targetRole) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: name, email, and targetRole are required' 
+      });
+    }
+
     const candidate = await Candidate.create(req.body);
+    logger.info('Candidate created successfully:', candidate._id);
     res.status(201).json({ success: true, data: candidate });
   } catch (error: any) {
     logger.error('Error creating candidate:', error);
-    res.status(500).json({ success: false, message: error.message });
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'A candidate with this email already exists' 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error while creating candidate',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

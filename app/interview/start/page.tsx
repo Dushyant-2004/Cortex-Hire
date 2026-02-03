@@ -8,6 +8,7 @@ import { candidateApi, interviewApi } from '@/lib/api';
 export default function StartInterviewPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,16 +20,34 @@ export default function StartInterviewPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      // Create candidate
-      const candidateRes = await candidateApi.create({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        experience: formData.level,
-        targetRole: formData.role,
-      });
+      // Create candidate with retry logic
+      let candidateRes;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        try {
+          candidateRes = await candidateApi.create({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            experience: formData.level,
+            targetRole: formData.role,
+          });
+          break;
+        } catch (err: any) {
+          retryCount++;
+          if (retryCount >= maxRetries) throw err;
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
+      }
+
+      if (!candidateRes?.data?.data?._id) {
+        throw new Error('Invalid response from server');
+      }
 
       const candidateId = candidateRes.data.data._id;
 
@@ -40,13 +59,32 @@ export default function StartInterviewPage() {
         questionCount: 5,
       });
 
+      if (!interviewRes?.data?.data?._id) {
+        throw new Error('Invalid interview response from server');
+      }
+
       const interviewId = interviewRes.data.data._id;
 
       // Navigate to interview room
       router.push(`/interview/${interviewId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting interview:', error);
-      alert('Failed to start interview. Please try again.');
+      
+      let errorMessage = 'Failed to start interview. ';
+      
+      if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+        errorMessage += 'Cannot connect to server. Please make sure the backend is running on port 5000.';
+      } else if (error.code === 'ECONNREFUSED') {
+        errorMessage += 'Server is not responding. Please check if the backend server is running.';
+      } else if (error.response?.status === 500) {
+        errorMessage += 'Server error occurred. Please try again.';
+      } else if (error.response?.status === 400) {
+        errorMessage += error.response?.data?.message || 'Invalid data provided.';
+      } else {
+        errorMessage += error.message || 'Please try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -66,6 +104,28 @@ export default function StartInterviewPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700 font-medium">{error}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="ml-auto flex-shrink-0 text-red-500 hover:text-red-700"
+                >
+                  <span className="sr-only">Close</span>
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
