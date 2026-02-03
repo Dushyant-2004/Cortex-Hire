@@ -25,14 +25,23 @@ export default function StartInterviewPage() {
   useEffect(() => {
     // Check if user is logged in
     const currentUser = authUtils.getUser();
-    if (currentUser) {
+    const token = authUtils.getToken();
+    console.log('Current user:', currentUser); // Debug log
+    console.log('Token exists:', !!token); // Debug log
+    
+    // User is authenticated if they have a token and email
+    if (token && currentUser && currentUser.email) {
       setUser(currentUser);
       setIsAuthenticated(true);
       setFormData(prev => ({
         ...prev,
-        name: currentUser.name,
-        email: currentUser.email,
+        name: currentUser.name || '',
+        email: currentUser.email || '',
       }));
+      console.log('User authenticated, form data set'); // Debug log
+    } else {
+      setIsAuthenticated(false);
+      console.log('User not authenticated'); // Debug log
     }
   }, []);
 
@@ -42,14 +51,30 @@ export default function StartInterviewPage() {
     setError(null);
 
     try {
+      // Debug logs
+      console.log('Form Data:', formData);
+      console.log('User:', user);
+      console.log('Is Authenticated:', isAuthenticated);
+
+      // Ensure we have all required data
+      const candidateData = {
+        name: formData.name || user?.name || '',
+        email: formData.email || user?.email || '',
+        phone: formData.phone || '',
+        experience: formData.level,
+        targetRole: formData.role,
+      };
+
+      console.log('Candidate Data to submit:', candidateData);
+
       // Validate required fields
-      if (!formData.name.trim()) {
-        throw new Error('Please enter your name');
+      if (!candidateData.name || !candidateData.name.trim()) {
+        throw new Error('Name is required. Please log in or enter your name.');
       }
-      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        throw new Error('Please enter a valid email address');
+      if (!candidateData.email || !candidateData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidateData.email)) {
+        throw new Error('Valid email is required. Please log in or enter your email.');
       }
-      if (!formData.role.trim()) {
+      if (!candidateData.targetRole || !candidateData.targetRole.trim()) {
         throw new Error('Please enter your target role');
       }
 
@@ -60,13 +85,7 @@ export default function StartInterviewPage() {
 
       while (retryCount < maxRetries) {
         try {
-          candidateRes = await candidateApi.create({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            experience: formData.level,
-            targetRole: formData.role,
-          });
+          candidateRes = await candidateApi.create(candidateData);
           break;
         } catch (err: any) {
           retryCount++;

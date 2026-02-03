@@ -58,8 +58,17 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
+      console.log('Login response data:', data); // Debug log
+
+      // Validate response has user data
+      if (!data.user || !data.user.name || !data.user.email) {
+        throw new Error('Invalid user data received from server');
+      }
+
       // Store the token using auth utils
       authUtils.setUser(data.user, data.token);
+      
+      console.log('User stored:', authUtils.getUser()); // Debug log
 
       // Redirect to dashboard
       router.push('/dashboard');

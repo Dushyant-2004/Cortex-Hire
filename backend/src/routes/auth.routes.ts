@@ -8,7 +8,13 @@ router.post('/signup', async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
     res.status(201).json({ 
       message: 'User registered successfully',
-      user: { email, name }
+      token: 'dummy_token_' + Date.now(),
+      user: { 
+        _id: 'user_' + Date.now(),
+        email, 
+        name,
+        createdAt: new Date().toISOString()
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'Signup failed' });
@@ -18,10 +24,20 @@ router.post('/signup', async (req: Request, res: Response) => {
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    
+    // In a real app, validate credentials against database
+    // For now, return mock user data with name extracted from email
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    
     res.status(200).json({ 
       message: 'Login successful',
-      token: 'dummy_token',
-      user: { email }
+      token: 'dummy_token_' + Date.now(),
+      user: { 
+        _id: 'user_' + Date.now(),
+        email,
+        name,
+        createdAt: new Date().toISOString()
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
