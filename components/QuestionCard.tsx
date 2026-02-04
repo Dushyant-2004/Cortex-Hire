@@ -61,7 +61,7 @@ export default function QuestionCard({
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Type your answer here or use voice recording..."
-              className="w-full h-40 p-4 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none"
+              className="w-full h-40 p-4 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none text-gray-900 placeholder:text-gray-400 bg-white"
               disabled={isRecording}
             />
 
