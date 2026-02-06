@@ -77,6 +77,7 @@ export const candidateApi = {
   create: (data: any) => api.post('/candidates', data),
   getAll: () => api.get('/candidates'),
   getById: (id: string) => api.get(`/candidates/${id}`),
+  getByEmail: (email: string) => api.get(`/candidates/email/${encodeURIComponent(email)}`),
   update: (id: string, data: any) => api.patch(`/candidates/${id}`, data),
   delete: (id: string) => api.delete(`/candidates/${id}`),
 };

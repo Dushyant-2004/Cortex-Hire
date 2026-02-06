@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import path from 'path';
 import mongoose from 'mongoose';
 import { setupWebSocket } from './websocket';
 import interviewRoutes from './routes/interview.routes';
@@ -12,7 +13,8 @@ import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth.routes';
 import { logger } from './utils/logger';
 
-dotenv.config();
+// Load environment variables from the backend root directory
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app: Application = express();
 const httpServer = createServer(app);

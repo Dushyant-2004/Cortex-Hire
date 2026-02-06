@@ -57,6 +57,20 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// Get candidate by email
+router.get('/email/:email', async (req: Request, res: Response) => {
+  try {
+    const candidate = await Candidate.findOne({ email: req.params.email });
+    if (!candidate) {
+      return res.status(404).json({ success: false, message: 'Candidate not found' });
+    }
+    res.json({ success: true, data: candidate });
+  } catch (error: any) {
+    logger.error('Error fetching candidate by email:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Get candidate by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {

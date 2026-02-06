@@ -6,6 +6,14 @@ const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }) : null;
 
+// Log API key status on initialization
+if (!process.env.OPENAI_API_KEY) {
+  logger.warn('⚠️  OPENAI_API_KEY is not set in environment variables');
+} else {
+  const keyPreview = process.env.OPENAI_API_KEY.substring(0, 10) + '...';
+  logger.info(`✅ OpenAI API key detected: ${keyPreview}`);
+}
+
 export class AIService {
   // Analyze answer quality
   async analyzeAnswerQuality(question: string, answer: string): Promise<any> {
@@ -108,7 +116,7 @@ export class AIService {
   ): Promise<string[]> {
     try {
       if (!openai) {
-        logger.warn('OpenAI API key not configured, returning mock questions');
+        logger.warn('⚠️  OpenAI API key not configured, returning mock questions');
         return [
           `Tell me about your experience with ${role} responsibilities`,
           'Describe a challenging project you worked on and how you overcame obstacles',
@@ -117,6 +125,8 @@ export class AIService {
           'Where do you see yourself in the next 3-5 years?'
         ].slice(0, count);
       }
+      
+      logger.info(`🤖 Generating ${count} questions for ${level} ${role} using OpenAI...`);
       
       const prompt = `
         Generate ${count} interview questions for a ${level} ${role} position.
@@ -133,10 +143,25 @@ export class AIService {
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
+      logger.info(`✅ Successfully generated ${result.questions?.length || 0} questions`);
       return result.questions || [];
-    } catch (error) {
-      logger.error('Error generating questions:', error);
-      throw error;
+    } catch (error: any) {
+      logger.error('❌ Error generating questions with OpenAI:', error.message);
+      logger.error('Error details:', { 
+        code: error.code, 
+        status: error.status,
+        type: error.type 
+      });
+      
+      // Return mock questions as fallback
+      logger.warn('⚠️  Falling back to mock questions due to API error');
+      return [
+        `Tell me about your experience with ${role} responsibilities`,
+        'Describe a challenging project you worked on and how you overcame obstacles',
+        `What technical skills do you bring to this ${role} position?`,
+        'How do you handle tight deadlines and competing priorities?',
+        'Where do you see yourself in the next 3-5 years?'
+      ].slice(0, count);
     }
   }
 

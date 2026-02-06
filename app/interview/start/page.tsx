@@ -47,6 +47,17 @@ export default function StartInterviewPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is authenticated before proceeding
+    if (!isAuthenticated) {
+      setError('Please login to start the interview');
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -80,14 +91,32 @@ export default function StartInterviewPage() {
 
       // Create candidate with enhanced retry logic
       let candidateRes;
+      let candidateId;
       let retryCount = 0;
       const maxRetries = 3;
 
       while (retryCount < maxRetries) {
         try {
           candidateRes = await candidateApi.create(candidateData);
+          candidateId = candidateRes.data.data._id;
           break;
         } catch (err: any) {
+          // If candidate already exists with this email, fetch the existing candidate
+          if (err.response?.status === 400 && err.response?.data?.message?.includes('already exists')) {
+            console.log('Candidate already exists, fetching existing candidate...');
+            try {
+              const existingCandidate = await candidateApi.getByEmail(candidateData.email);
+              if (existingCandidate?.data?.data?._id) {
+                candidateId = existingCandidate.data.data._id;
+                console.log('Using existing candidate ID:', candidateId);
+                break;
+              }
+            } catch (fetchErr: any) {
+              console.error('Error fetching existing candidate:', fetchErr);
+              throw new Error('Failed to retrieve existing candidate profile');
+            }
+          }
+          
           retryCount++;
           if (retryCount >= maxRetries) {
             throw new Error(
@@ -101,11 +130,9 @@ export default function StartInterviewPage() {
         }
       }
 
-      if (!candidateRes?.data?.data?._id) {
+      if (!candidateId) {
         throw new Error('Invalid response from server. Please try again.');
       }
-
-      const candidateId = candidateRes.data.data._id;
 
       // Create interview with retry
       let interviewRes;
@@ -202,6 +229,31 @@ export default function StartInterviewPage() {
             className="bg-white rounded-2xl shadow-xl p-8"
           >
             <AnimatePresence mode="wait">
+              {!isAuthenticated && !error && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-6 overflow-hidden"
+                >
+                  <div className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <p className="text-sm text-amber-700 font-medium">
+                          Please <a href="/login" className="underline font-semibold hover:text-amber-900">login</a> to start the interview
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              
               {error && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
@@ -348,9 +400,9 @@ export default function StartInterviewPage() {
 
               <motion.button
                 type="submit"
-                disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
+                disabled={loading || !isAuthenticated}
+                whileHover={{ scale: (loading || !isAuthenticated) ? 1 : 1.02 }}
+                whileTap={{ scale: (loading || !isAuthenticated) ? 1 : 0.98 }}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: isAuthenticated ? 0.8 : 1.1 }}
@@ -364,6 +416,10 @@ export default function StartInterviewPage() {
                       className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                     />
                     <span>Setting up your interview...</span>
+                  </>
+                ) : !isAuthenticated ? (
+                  <>
+                    <span>Login Required</span>
                   </>
                 ) : (
                   <>
