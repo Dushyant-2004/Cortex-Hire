@@ -2,16 +2,21 @@ import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 
 // Initialize OpenAI client only if API key is provided
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+let openai: OpenAI | null = null;
 
-// Log API key status on initialization
-if (!process.env.OPENAI_API_KEY) {
-  logger.warn('⚠️  OPENAI_API_KEY is not set in environment variables');
+// Only initialize OpenAI if the API key is properly set (not empty or undefined)
+if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '') {
+  try {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    const keyPreview = process.env.OPENAI_API_KEY.substring(0, 10) + '...';
+    logger.info(`✅ OpenAI API key detected: ${keyPreview}`);
+  } catch (error) {
+    logger.error('❌ Failed to initialize OpenAI client:', error);
+  }
 } else {
-  const keyPreview = process.env.OPENAI_API_KEY.substring(0, 10) + '...';
-  logger.info(`✅ OpenAI API key detected: ${keyPreview}`);
+  logger.warn('⚠️  OPENAI_API_KEY is not set in environment variables');
 }
 
 export class AIService {

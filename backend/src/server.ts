@@ -1,9 +1,10 @@
+// Load environment variables first, before any other imports
+import './config/env';
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
-import path from 'path';
 import mongoose from 'mongoose';
 import { setupWebSocket } from './websocket';
 import interviewRoutes from './routes/interview.routes';
@@ -12,9 +13,6 @@ import aiRoutes from './routes/ai.routes';
 import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth.routes';
 import { logger } from './utils/logger';
-
-// Load environment variables from the backend root directory
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app: Application = express();
 const httpServer = createServer(app);
